@@ -1,0 +1,25 @@
+To Study and Implement time series forecasting.
+Theory: 
+
+
+What is Time Series Forecasting?
+Time Series Forecasting is a statistical technique used to predict future values of a time series based on past observations. In simpler terms, it's like looking into the future of data points plotted over time. By analyzing patterns and trends in historical data, Time Series Forecasting helps make informed predictions about what may happen next, assisting in decision-making and planning for the future.
+Evaluating Time Series Forecasts
+Evaluating Time Series Forecasts involves assessing the accuracy and effectiveness of predictions made by time series forecasting models. This process aims to measure how well a model performs in predicting future values based on historical data. By evaluating forecasts, analysts can determine the reliability of the models, identify areas for improvement, and make informed decisions about their use in practical applications.
+Performance Metrics: Performance metrics are quantitative measures used to evaluate the accuracy and effectiveness of time series forecasts. These metrics provide insights into how well a forecasting model performs in predicting future values based on historical data. Common performance metrics which can be used for time series include:
+Mean Absolute Error (MAE): Measures the average magnitude of errors between predicted and actual values.
+Mean Absolute Percentage Error (MAPE): Calculates the average percentage difference between predicted and actual values.
+Mean Squared Error (MSE): Computes the average squared differences between predicted and actual values.
+Root Mean Squared Error (RMSE): The square root of MSE, providing a measure of the typical magnitude of errors.
+Forecast Bias: Determines whether forecasts systematically overestimate or underestimate actual values.
+Forecast Interval Coverage: Evaluates the percentage of actual values that fall within forecast intervals.
+Theil's U Statistic: Compares the performance of the forecast model to a naïve benchmark model.
+Time series forecasting in Microsoft Power BI
+Method 1: Times Series forecasting Using the Analysis Pane in Microsoft Power BI
+First you need to load your Data to Power BI, Make sure that your data contains dates, and for the time series analysis to work properly you would need a minimum of 90 days data.
+ 
+1. Select the Line chart Visual as show in the image below.
+2. Add the Date field to the X axis and the clicks field to the Y axis.
+3. Go to the analytics Pane and turn the forecast option on.
+
+With the option in the image above you can adjust the confidence interval and the forecast length depending on your analysis requirements.
