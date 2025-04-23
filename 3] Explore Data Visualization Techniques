@@ -1,0 +1,73 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+
+np.random.seed(42)
+
+n_samples = 1000
+
+normal_dist = np.random.normal(loc=25, scale=5, size=n_samples)
+skewed_dist = np.random.exponential(scale=4, size=n_samples)
+
+student_data = pd.DataFrame({
+    'study_hours': np.random.normal(loc=6, scale=2, size=n_samples),
+    'sleep_hours': np.random.normal(loc=7, scale=1.5, size=n_samples),
+    'exam_score': np.random.normal(loc=75, scale=10, size=n_samples)
+})
+
+student_data['exam_score'] = student_data['exam_score'] + (student_data['study_hours'] * 2)
+
+'''# Create a figure with multiple subplots
+plt.style.use('seaborn')
+fig = plt.figure(figsize=(15, 12))'''
+
+
+sns.set_style('darkgrid')  # Or try other Seaborn styles like 'whitegrid', 'ticks', etc.
+fig = plt.figure(figsize=(15, 12))
+
+plt.subplot(3, 2, 1)
+sns.histplot(normal_dist, kde=True, color='skyblue')
+plt.title('Histogram with KDE: Student Heights')
+plt.xlabel('Height (inches)')
+plt.ylabel('Frequency')
+
+plt.subplot(3, 2, 2)
+sns.boxplot(y=normal_dist, color='lightgreen')
+plt.title('Box Plot: Student Heights')
+plt.ylabel('Height (inches)')
+
+plt.subplot(3, 2, 3)
+sns.regplot(data=student_data, x='study_hours', y='exam_score', 
+            scatter_kws={'alpha':0.5}, line_kws={'color': 'red'})
+plt.title('Scatter Plot: Study Hours vs Exam Score')
+plt.xlabel('Study Hours')
+plt.ylabel('Exam Score')
+
+plt.subplot(3, 2, 4)
+sns.kdeplot(data=student_data['study_hours'], label='Study Hours', fill=True)
+sns.kdeplot(data=student_data['sleep_hours'], label='Sleep Hours', fill=True)
+plt.title('Density Plot: Study vs Sleep Hours')
+plt.xlabel('Hours')
+plt.ylabel('Density')
+plt.legend()
+
+plt.subplot(3, 2, (5, 6))
+sns.kdeplot(data=student_data, x='study_hours', y='exam_score', 
+            fill=True, cmap='viridis', levels=20)
+plt.title('2D Density Plot: Study Hours vs Exam Score')
+plt.xlabel('Study Hours')
+plt.ylabel('Exam Score')
+
+plt.tight_layout()
+plt.show()
+
+print("\nSummary Statistics for Normal Distribution (Heights):")
+print(pd.Series(normal_dist).describe())
+
+print("\nCorrelation between Study Hours and Exam Score:")
+
+print(student_data[['study_hours', 'exam_score']].corr())
+
+
