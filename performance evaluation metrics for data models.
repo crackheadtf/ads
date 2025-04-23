@@ -1,0 +1,174 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.metrics import (
+	accuracy_score, confusion_matrix, precision_score, recall_score,
+	f1_score, roc_curve, auc, mean_absolute_error, mean_squared_error, r2_score
+)
+
+np.random.seed(42)
+n_samples = 200
+
+study_hours = np.random.normal(7, 2, n_samples)
+previous_scores = np.random.normal(75, 15, n_samples)
+
+threshold = 0.5
+pass_fail = (0.3 * study_hours/10 + 0.7 * previous_scores/100 + np.random.normal(0, 0.3, n_samples) > threshold).astype(int)
+
+final_scores = 20 + 5 * study_hours + 0.5 * previous_scores + np.random.normal(0, 5, n_samples)
+final_scores = np.clip(final_scores, 0, 100)
+
+classification_df = pd.DataFrame({
+	'study_hours': study_hours,
+	'previous_scores': previous_scores,
+	'pass_fail': pass_fail
+})
+
+regression_df = pd.DataFrame({
+	'study_hours': study_hours,
+	'previous_scores': previous_scores,
+	'final_scores': final_scores
+})
+
+def evaluate_classification(X, y):
+	print("\nClass Distribution:")
+	print(pd.Series(y).value_counts(normalize=True))
+    
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    
+	model = LogisticRegression()
+	model.fit(X_train, y_train)
+    
+	y_pred = model.predict(X_test)
+	y_prob = model.predict_proba(X_test)[:, 1]
+    
+	accuracy = accuracy_score(y_test, y_pred)
+	conf_matrix = confusion_matrix(y_test, y_pred)
+	precision = precision_score(y_test, y_pred)
+	recall = recall_score(y_test, y_pred)
+	f1 = f1_score(y_test, y_pred)
+    
+	fpr, tpr, _ = roc_curve(y_test, y_prob)
+	roc_auc = auc(fpr, tpr)
+    
+	fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
+    
+	sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', ax=ax1)
+	ax1.set_title('Confusion Matrix')
+	ax1.set_xlabel('Predicted')
+	ax1.set_ylabel('Actual')
+    
+	ax2.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.2f})')
+	ax2.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+	ax2.set_xlim([0.0, 1.0])
+	ax2.set_ylim([0.0, 1.05])
+	ax2.set_xlabel('False Positive Rate')
+	ax2.set_ylabel('True Positive Rate')
+	ax2.set_title('ROC Curve')
+	ax2.legend(loc="lower right")
+    
+	importances = pd.DataFrame({
+    	'Feature': ['Study Hours', 'Previous Scores'],
+    	'Importance': abs(model.coef_[0])
+	})
+	sns.barplot(data=importances, x='Feature', y='Importance', ax=ax3)
+	ax3.set_title('Feature Importance')
+    
+	metrics = {
+    	'Metric': ['Accuracy', 'Precision', 'Recall', 'F1-Score'],
+    	'Value': [accuracy, precision, recall, f1]
+	}
+	sns.barplot(data=pd.DataFrame(metrics), x='Metric', y='Value', ax=ax4)
+	ax4.set_title('Classification Metrics Summary')
+	ax4.set_ylim([0, 1])
+    
+	plt.tight_layout()
+	plt.show()
+    
+	return {
+    	'accuracy': accuracy,
+    	'precision': precision,
+    	'recall': recall,
+    	'f1_score': f1,
+    	'roc_auc': roc_auc
+	}
+
+def evaluate_regression(X, y):
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+	model = LinearRegression()
+	model.fit(X_train, y_train)
+    
+	y_pred = model.predict(X_test)
+    
+	mae = mean_absolute_error(y_test, y_pred)
+	mse = mean_squared_error(y_test, y_pred)
+	rmse = np.sqrt(mse)
+	r2 = r2_score(y_test, y_pred)
+    
+	n = X_test.shape[0]
+	p = X_test.shape[1]
+	adjusted_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
+    
+	fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
+    
+	ax1.scatter(y_test, y_pred, alpha=0.5)
+	ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+	ax1.set_xlabel('Actual Values')
+	ax1.set_ylabel('Predicted Values')
+	ax1.set_title('Actual vs Predicted Values')
+    
+	residuals = y_test - y_pred
+	ax2.scatter(y_pred, residuals, alpha=0.5)
+	ax2.axhline(y=0, color='r', linestyle='--')
+	ax2.set_xlabel('Predicted Values')
+	ax2.set_ylabel('Residuals')
+	ax2.set_title('Residuals Plot')
+    
+	importances = pd.DataFrame({
+    	'Feature': ['Study Hours', 'Previous Scores'],
+    	'Coefficient': abs(model.coef_)
+	})
+	sns.barplot(data=importances, x='Feature', y='Coefficient', ax=ax3)
+	ax3.set_title('Feature Coefficients')
+    
+	metrics = {
+    	'Metric': ['MAE', 'RMSE', 'R2', 'Adj R2'],
+    	'Value': [mae, rmse, r2, adjusted_r2]
+	}
+	sns.barplot(data=pd.DataFrame(metrics), x='Metric', y='Value', ax=ax4)
+	ax4.set_title('Regression Metrics Summary')
+    
+	plt.tight_layout()
+	plt.show()
+    
+	return {
+    	'mae': mae,
+    	'mse': mse,
+    	'rmse': rmse,
+    	'r2': r2,
+    	'adjusted_r2': adjusted_r2
+	}
+
+X_class = classification_df[['study_hours', 'previous_scores']]
+y_class = classification_df['pass_fail']
+
+X_reg = regression_df[['study_hours', 'previous_scores']]
+y_reg = regression_df['final_scores']
+
+print("Initial Class Distribution:")
+print(classification_df['pass_fail'].value_counts(normalize=True))
+
+print("\nClassification Metrics:")
+class_metrics = evaluate_classification(X_class, y_class)
+for metric, value in class_metrics.items():
+	print(f"{metric}: {value:.4f}")
+
+print("\nRegression Metrics:")
+reg_metrics = evaluate_regression(X_reg, y_reg)
+for metric, value in reg_metrics.items():
+	print(f"{metric}: {value:.4f}")
+
